@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MP5.App.Views.SearchView"
+             BackgroundColor="#0D0D0D">
+    
+    <Grid RowDefinitions="Auto,*">
+        <!-- Search Header -->
+        <VerticalStackLayout Grid.Row="0" Spacing="16" Padding="24,24,24,12">
+            <Label Text="Search" TextColor="White" FontSize="28" FontAttributes="Bold"/>
+            
+            <Border StrokeShape="RoundRectangle 8"
+                    StrokeThickness="0"
+                    BackgroundColor="#1E1E1E"
+                    HeightRequest="48"
+                    Padding="12,0">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Label Grid.Column="0" Text="🔍" VerticalOptions="Center" Margin="0,0,12,0"/>
+                    <Entry Grid.Column="1" 
+                           Placeholder="What do you want to listen to?" 
+                           PlaceholderColor="#707070"
+                           TextColor="White"
+                           VerticalOptions="Center"
+                           Text="{Binding SearchQuery}"
+                           ReturnCommand="{Binding PerformSearchCommand}"/>
+                    <ActivityIndicator Grid.Column="2" IsRunning="{Binding IsBusy}" Color="#9B59B6" VerticalOptions="Center"/>
+                </Grid>
+            </Border>
+            
+            <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never">
+                <HorizontalStackLayout Spacing="8">
+                    <Button Text="Start Radio" BackgroundColor="#2A2A2A" TextColor="White" CornerRadius="16" HeightRequest="32" Padding="16,0"/>
+                    <Button Text="Rock" BackgroundColor="#2A2A2A" TextColor="White" CornerRadius="16" HeightRequest="32" Padding="16,0"/>
+                    <Button Text="Lo-Fi" BackgroundColor="#2A2A2A" TextColor="White" CornerRadius="16" HeightRequest="32" Padding="16,0"/>
+                    <Button Text="Focus" BackgroundColor="#2A2A2A" TextColor="White" CornerRadius="16" HeightRequest="32" Padding="16,0"/>
+                </HorizontalStackLayout>
+            </ScrollView>
+        </VerticalStackLayout>
+        
+        <!-- Search Results vs Browse Categories -->
+        <Grid Grid.Row="1">
+            <!-- Browse Categories (Default) -->
+            <ScrollView IsVisible="{Binding SearchResults.Count, Converter={StaticResource BoolToObjectConverter}, ConverterParameter='False|True'}">
+                <VerticalStackLayout Padding="24" Spacing="24">
+                    <Label Text="Browse all" TextColor="White" FontSize="20" FontAttributes="Bold"/>
+                    
+                    <FlexLayout Wrap="Wrap" JustifyContent="Start" Direction="Row">
+                        <!-- Category Cards -->
+                        <Border BackgroundColor="#E13300" StrokeShape="RoundRectangle 8" WidthRequest="160" HeightRequest="100" Margin="0,0,16,16" Padding="16">
+                            <Label Text="Podcasts" TextColor="White" FontSize="20" FontAttributes="Bold"/>
+                        </Border>
+                        <Border BackgroundColor="#7358FF" StrokeShape="RoundRectangle 8" WidthRequest="160" HeightRequest="100" Margin="0,0,16,16" Padding="16">
+                            <Label Text="Live Events" TextColor="White" FontSize="20" FontAttributes="Bold"/>
+                        </Border>
+                        <Border BackgroundColor="#1E3264" StrokeShape="RoundRectangle 8" WidthRequest="160" HeightRequest="100" Margin="0,0,16,16" Padding="16">
+                            <Label Text="Made For You" TextColor="White" FontSize="20" FontAttributes="Bold"/>
+                        </Border>
+                        <Border BackgroundColor="#E8115B" StrokeShape="RoundRectangle 8" WidthRequest="160" HeightRequest="100" Margin="0,0,16,16" Padding="16">
+                            <Label Text="New Releases" TextColor="White" FontSize="20" FontAttributes="Bold"/>
+                        </Border>
+                         <Border BackgroundColor="#509BF5" StrokeShape="RoundRectangle 8" WidthRequest="160" HeightRequest="100" Margin="0,0,16,16" Padding="16">
+                            <Label Text="Pop" TextColor="White" FontSize="20" FontAttributes="Bold"/>
+                        </Border>
+                        <Border BackgroundColor="#D84000" StrokeShape="RoundRectangle 8" WidthRequest="160" HeightRequest="100" Margin="0,0,16,16" Padding="16">
+                            <Label Text="Hip-Hop" TextColor="White" FontSize="20" FontAttributes="Bold"/>
+                        </Border>
+                    </FlexLayout>
+                </VerticalStackLayout>
+            </ScrollView>
+            
+            <!-- Search Results List -->
+            <CollectionView ItemsSource="{Binding SearchResults}"
+                            IsVisible="{Binding SearchResults.Count, Converter={StaticResource BoolToObjectConverter}, ConverterParameter='True|False'}"
+                            SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="12,8" ColumnDefinitions="Auto,*,Auto">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentView}}, Path=BindingContext.PlayTrackCommand}"
+                                                      CommandParameter="{Binding .}"/>
+                            </Grid.GestureRecognizers>
+                            
+                            <Border Grid.Column="0" StrokeShape="RoundRectangle 4" WidthRequest="48" HeightRequest="48" BackgroundColor="#333" Margin="0,0,12,0">
+                                <Image Source="{Binding ThumbnailUrl}" Aspect="AspectFill"/>
+                            </Border>
+                            
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                <Label Text="{Binding Title}" TextColor="White" FontSize="14" FontAttributes="Bold" LineBreakMode="TailTruncation"/>
+                                <Label Text="{Binding Artist}" TextColor="#B0B0B0" FontSize="12" LineBreakMode="TailTruncation"/>
+                            </VerticalStackLayout>
+                            
+                            <Label Grid.Column="2" Text="{Binding Duration, StringFormat='{0:mm\\:ss}'}" TextColor="#B0B0B0" FontSize="12" VerticalOptions="Center"/>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+    </Grid>
+</ContentView>

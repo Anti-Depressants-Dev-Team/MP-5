@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MP5.App.Views.PlaylistsView"
+             BackgroundColor="#0D0D0D">
+    
+    <Grid RowDefinitions="Auto,*">
+        <HorizontalStackLayout Grid.Row="0" Spacing="16" Padding="24" VerticalOptions="Center">
+            <Label Text="Your Library" TextColor="White" FontSize="28" FontAttributes="Bold"/>
+            <Button Text="+" FontSize="20" WidthRequest="40" HeightRequest="40" CornerRadius="20" BackgroundColor="#2A2A2A" TextColor="White"/>
+        </HorizontalStackLayout>
+        
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="24" Spacing="0">
+                <!-- Filters -->
+                <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never" Margin="0,0,0,16">
+                    <HorizontalStackLayout Spacing="8">
+                        <Button Text="Playlists" BackgroundColor="#2A2A2A" TextColor="White" CornerRadius="16" HeightRequest="32" Padding="16,0"/>
+                        <Button Text="Artists" BackgroundColor="#2A2A2A" TextColor="White" CornerRadius="16" HeightRequest="32" Padding="16,0"/>
+                        <Button Text="Albums" BackgroundColor="#2A2A2A" TextColor="White" CornerRadius="16" HeightRequest="32" Padding="16,0"/>
+                    </HorizontalStackLayout>
+                </ScrollView>
+                
+                <!-- List Header -->
+                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+                    <Label Text="Most recent" TextColor="#B0B0B0" FontSize="14" VerticalOptions="Center"/>
+                    <Label Grid.Column="1" Text="📅" FontSize="16" VerticalOptions="Center"/>
+                </Grid>
+                
+                <!-- Playlist Items -->
+                <VerticalStackLayout Spacing="16">
+                    <!-- Liked Songs -->
+                    <Grid ColumnDefinitions="50,*" ColumnSpacing="12">
+                        <Border Grid.Column="0" HeightRequest="50" WidthRequest="50" StrokeShape="RoundRectangle 4" BackgroundColor="#450AF5">
+                            <Label Text="♥" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                            <Label Text="Liked Songs" TextColor="White" FontSize="16" FontAttributes="Bold"/>
+                            <Label Text="Playlist • 123 songs" TextColor="#B0B0B0" FontSize="14"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                    
+                    <!-- MP^5 Favorites -->
+                    <Grid ColumnDefinitions="50,*" ColumnSpacing="12">
+                         <Border Grid.Column="0" HeightRequest="50" WidthRequest="50" StrokeShape="RoundRectangle 4" BackgroundColor="#9B59B6">
+                            <Label Text="🎵" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                            <Label Text="MP^5 Favorites" TextColor="White" FontSize="16" FontAttributes="Bold"/>
+                            <Label Text="Playlist • Razvan" TextColor="#B0B0B0" FontSize="14"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                    
+                    <!-- Coding Focus -->
+                     <Grid ColumnDefinitions="50,*" ColumnSpacing="12">
+                         <Border Grid.Column="0" HeightRequest="50" WidthRequest="50" StrokeShape="RoundRectangle 4" BackgroundColor="#2A2A2A">
+                            <Label Text="💻" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                            <Label Text="Coding Focus" TextColor="White" FontSize="16" FontAttributes="Bold"/>
+                            <Label Text="Playlist • Neural Net" TextColor="#B0B0B0" FontSize="14"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentView>

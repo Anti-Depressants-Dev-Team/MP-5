@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MP5.App.Views.SettingsView"
+             x:Name="RootView"
+             BackgroundColor="#0D0D0D">
+    
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="32">
+            <Label Text="Settings" TextColor="White" FontSize="28" FontAttributes="Bold"/>
+            
+            <!-- Appearance Group -->
+            <VerticalStackLayout Spacing="8">
+                <Label Text="Appearance" TextColor="White" FontSize="18" FontAttributes="Bold"/>
+                
+                <!-- Accent Color Picker -->
+                <Label Text="Accent Color" TextColor="White" Margin="0,8,0,0"/>
+                <CollectionView ItemsSource="{Binding AccentColorPresets}" 
+                                HeightRequest="60"
+                                SelectionMode="None">
+                    <CollectionView.ItemsLayout>
+                        <LinearItemsLayout Orientation="Horizontal" ItemSpacing="12"/>
+                    </CollectionView.ItemsLayout>
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+                            <Border StrokeShape="RoundRectangle 20" WidthRequest="40" HeightRequest="40"
+                                    BackgroundColor="{Binding .}"
+                                    Stroke="White" StrokeThickness="0">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={x:Reference RootView}, Path=BindingContext.SetAccentColorCommand}"
+                                                        CommandParameter="{Binding .}"/>
+                                </Border.GestureRecognizers>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+                <Grid ColumnDefinitions="*,Auto" HeightRequest="50">
+                    <Label Text="Psychopath Mode (Top Player)" TextColor="White" VerticalOptions="Center"/>
+                    <Switch Grid.Column="1" IsToggled="{Binding IsPsychopathMode, Mode=TwoWay}" OnColor="{DynamicResource AccentPrimary}" ThumbColor="White"/>
+                </Grid>
+                
+                <Grid ColumnDefinitions="*,Auto" HeightRequest="50">
+                    <Label Text="Glassmorphism Effects" TextColor="White" VerticalOptions="Center"/>
+                    <Switch Grid.Column="1" IsToggled="{Binding GlassmorphismEnabled, Mode=TwoWay}" OnColor="{DynamicResource AccentPrimary}" ThumbColor="White"/>
+                </Grid>
+            </VerticalStackLayout>
+
+            <!-- Accounts Group -->
+            <VerticalStackLayout Spacing="8">
+                <Label Text="Accounts" TextColor="White" FontSize="18" FontAttributes="Bold"/>
+                
+                <Frame BackgroundColor="#1E1E1E" BorderColor="#333333" CornerRadius="8" Padding="16">
+                     <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                             <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                 <Label Text="Last.fm Scrobbling" TextColor="White" FontAttributes="Bold" VerticalOptions="Center"/>
+                            </HorizontalStackLayout>
+                            <Label Text="{Binding AuthenticatedLastFmUser, StringFormat='Connected as {0}'}" 
+                                   TextColor="#2ECC71" 
+                                   IsVisible="{Binding IsLastFmAuthenticated}"
+                                   VerticalOptions="Center" Grid.Column="1"/>
+                        </Grid>
+                        
+                        <!-- Login Form -->
+                        <VerticalStackLayout Spacing="8" IsVisible="{Binding IsLastFmAuthenticated, Converter={StaticResource InvertedBoolConverter}}">
+                            <Entry Placeholder="Username" Text="{Binding LastFmUsernameInput}" TextColor="White" PlaceholderColor="#888" BackgroundColor="#2D2D2D"/>
+                            <Entry Placeholder="Password" Text="{Binding LastFmPasswordInput}" IsPassword="True" TextColor="White" PlaceholderColor="#888" BackgroundColor="#2D2D2D"/>
+                            <Button Text="Connect" Command="{Binding ConnectLastFmCommand}" BackgroundColor="#D51007" TextColor="White" CornerRadius="4"/>
+                        </VerticalStackLayout>
+                        
+                        <!-- Logout Action -->
+                         <Button Text="Disconnect" 
+                                Command="{Binding DisconnectLastFmCommand}" 
+                                BackgroundColor="#333" 
+                                TextColor="White" 
+                                CornerRadius="4"
+                                IsVisible="{Binding IsLastFmAuthenticated}"/>
+                     </VerticalStackLayout>
+                </Frame>
+            </VerticalStackLayout>
+            
+            <!-- Audio Group -->
+             <VerticalStackLayout Spacing="8">
+                <Label Text="Audio" TextColor="White" FontSize="18" FontAttributes="Bold"/>
+                
+                <Grid ColumnDefinitions="*,Auto" HeightRequest="50">
+                    <Label Text="Volume Normalization" TextColor="White" VerticalOptions="Center"/>
+                    <Switch Grid.Column="1" IsToggled="{Binding PreventAudioDucking, Mode=TwoWay}" OnColor="{DynamicResource AccentPrimary}" ThumbColor="White"/>
+                </Grid>
+                
+                <Grid ColumnDefinitions="*,Auto" HeightRequest="50">
+                    <Label Text="Crossfade" TextColor="White" VerticalOptions="Center"/>
+                    <Switch Grid.Column="1" IsToggled="{Binding CrossfadeEnabled, Mode=TwoWay}" OnColor="{DynamicResource AccentPrimary}" ThumbColor="White"/>
+                </Grid>
+            </VerticalStackLayout>
+            
+             <!-- About Group -->
+             <VerticalStackLayout Spacing="8">
+                <Label Text="About" TextColor="White" FontSize="18" FontAttributes="Bold"/>
+                
+                <Label Text="MP^5 Music Player" TextColor="White" FontSize="16"/>
+                <Label Text="Version 1.0.0 (Preview)" TextColor="#B0B0B0" FontSize="14"/>
+                <Label Text="By Antigravity @ Google DeepMind" TextColor="#B0B0B0" FontSize="14"/>
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentView>

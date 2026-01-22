@@ -1,0 +1,265 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MP5.App.MainPage"
+             xmlns:converters="clr-namespace:MP5.App.Converters"
+             BackgroundColor="#0D0D0D"
+             Shell.NavBarIsVisible="False">
+             
+    <ContentPage.Resources>
+        <!-- Converter now in App.xaml -->
+    </ContentPage.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <!-- Player bar at top (psychopath mode) -->
+            <RowDefinition Height="120" x:Name="TopPlayerRow"/>
+            <!-- Main content area -->
+            <RowDefinition Height="*" x:Name="ContentRow"/>
+        </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <!-- Sidebar -->
+            <ColumnDefinition Width="220"/>
+            <!-- Main content -->
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <!-- TOP PLAYER BAR (Psychopath Mode - Default) -->
+        <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                BackgroundColor="#14141480"
+                Stroke="#22FFFFFF"
+                StrokeThickness="1"
+                Padding="16,8"
+                x:Name="TopPlayerBar">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- Left: Volume controls -->
+                <HorizontalStackLayout Grid.Column="0" Spacing="12" VerticalOptions="Center">
+                    <!-- Volume Icon -->
+                    <Border BackgroundColor="Transparent" StrokeThickness="0" Padding="8">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnVolumeButtonClicked"/>
+                        </Border.GestureRecognizers>
+                        <Path Data="{StaticResource IconVolumeHigh}" Fill="White" Aspect="Uniform" HeightRequest="20" WidthRequest="20"/>
+                    </Border>
+                    
+                    <!-- Volume Slider -->
+                    <Slider Minimum="0" Maximum="1" Value="{Binding Volume, Mode=TwoWay}"
+                            WidthRequest="120"
+                            MinimumTrackColor="{DynamicResource AccentPrimary}"
+                            MaximumTrackColor="#404040"
+                            ThumbColor="{DynamicResource AccentPrimary}"
+                            x:Name="VolumeSlider"/>
+                </HorizontalStackLayout>
+                
+                <!-- Center: Playback controls + Progress -->
+                <VerticalStackLayout Grid.Column="1" HorizontalOptions="Center" VerticalOptions="Center" Spacing="2" WidthRequest="400">
+                    <!-- Buttons -->
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="24">
+                        <!-- Shuffle -->
+                        <Border BackgroundColor="Transparent" StrokeThickness="0" Padding="8">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="ToggleShuffle"/>
+                            </Border.GestureRecognizers>
+                            <Path Data="{StaticResource IconShuffle}" Aspect="Uniform" HeightRequest="16" WidthRequest="16">
+                                <Path.Style>
+                                    <Style TargetType="Path">
+                                        <Setter Property="Fill" Value="#B0B0B0"/>
+                                        <Style.Triggers>
+                                            <DataTrigger TargetType="Path" Binding="{Binding ShuffleEnabled}" Value="True">
+                                                <Setter Property="Fill" Value="{DynamicResource AccentPrimary}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Path.Style>
+                            </Path>
+                        </Border>
+                        
+                        <!-- Previous -->
+                        <Border BackgroundColor="Transparent" StrokeThickness="0" Padding="8">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnPreviousClicked"/>
+                            </Border.GestureRecognizers>
+                            <Path Data="{StaticResource IconPrevious}" Fill="White" Aspect="Uniform" HeightRequest="20" WidthRequest="20"/>
+                        </Border>
+                        
+                        <!-- Play/Pause (Circle) -->
+                        <Border StrokeShape="RoundRectangle 28" WidthRequest="48" HeightRequest="48" BackgroundColor="{DynamicResource AccentPrimary}" StrokeThickness="0">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnPlayPauseClicked"/>
+                            </Border.GestureRecognizers>
+                            <Grid HorizontalOptions="Center" VerticalOptions="Center">
+                                <!-- Play Icon (Visible when NOT playing) -->
+                                <Path Data="{StaticResource IconPlay}" 
+                                      Fill="White" Aspect="Uniform" HeightRequest="20" WidthRequest="20"
+                                      Margin="4,0,0,0"
+                                      IsVisible="{Binding IsPlaying, Converter={StaticResource BoolToObjectConverter}, ConverterParameter='False|True'}"/>
+                                
+                                <!-- Pause Icon (Visible when Playing) -->
+                                <Path Data="{StaticResource IconPause}" 
+                                      Fill="White" Aspect="Uniform" HeightRequest="20" WidthRequest="20"
+                                      IsVisible="{Binding IsPlaying}"/>
+                            </Grid>
+                        </Border>
+                        
+                        <!-- Next -->
+                        <Border BackgroundColor="Transparent" StrokeThickness="0" Padding="8">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnNextClicked"/>
+                            </Border.GestureRecognizers>
+                            <Path Data="{StaticResource IconNext}" Fill="White" Aspect="Uniform" HeightRequest="20" WidthRequest="20"/>
+                        </Border>
+                        
+                        <!-- Repeat -->
+                        <Border BackgroundColor="Transparent" StrokeThickness="0" Padding="8">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="CycleRepeatMode"/>
+                            </Border.GestureRecognizers>
+                            <Path Data="{StaticResource IconRepeat}" Aspect="Uniform" HeightRequest="16" WidthRequest="16">
+                                 <Path.Style>
+                                    <Style TargetType="Path">
+                                        <Setter Property="Fill" Value="#B0B0B0"/>
+                                        <Style.Triggers>
+                                            <!-- Repeat All -->
+                                            <DataTrigger TargetType="Path" Binding="{Binding IsRepeatAll}" Value="True">
+                                                <Setter Property="Fill" Value="{DynamicResource AccentPrimary}"/>
+                                            </DataTrigger>
+                                            <!-- Repeat One -->
+                                            <DataTrigger TargetType="Path" Binding="{Binding IsRepeatOne}" Value="True">
+                                                <Setter Property="Fill" Value="{DynamicResource AccentPrimary}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Path.Style>
+                            </Path>
+                        </Border>
+                    </HorizontalStackLayout>
+                    
+                    <!-- Progress Bar -->
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8" VerticalOptions="Center">
+                        <Label Text="{Binding Position, StringFormat='{0:mm\\:ss}'}" 
+                               TextColor="#808080" FontSize="11" VerticalOptions="Center"/>
+                        
+                        <Slider Grid.Column="1"
+                                Minimum="0" Maximum="{Binding DurationSeconds}" 
+                                Value="{Binding PositionSeconds, Mode=TwoWay}"
+                                DragStarted="OnSliderDragStarted"
+                                DragCompleted="OnSliderDragCompleted"
+                                MinimumTrackColor="{DynamicResource AccentPrimary}"
+                                MaximumTrackColor="#404040"
+                                ThumbColor="{DynamicResource AccentPrimary}"
+                                ThumbImageSource=""
+                                VerticalOptions="Center"/>
+                                
+                        <Label Grid.Column="2" Text="{Binding Duration, StringFormat='{0:mm\\:ss}'}" 
+                               TextColor="#808080" FontSize="11" VerticalOptions="Center"/>
+                    </Grid>
+                </VerticalStackLayout>
+                
+                <!-- Right: Song info -->
+                <HorizontalStackLayout Grid.Column="2" Spacing="12" VerticalOptions="Center">
+                    <!-- Album art -->
+                    <Border StrokeShape="RoundRectangle 6" WidthRequest="48" HeightRequest="48"
+                            BackgroundColor="#2D2D2D" StrokeThickness="0">
+                        <Grid>
+                             <!-- Placeholder -->
+                             <Label Text="🎵" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" TextColor="#555"/>
+                             <!-- Real Image -->
+                             <Image Source="{Binding CurrentTrack.ThumbnailUrl}" Aspect="AspectFill"/>
+                        </Grid>
+                    </Border>
+                    
+                    <!-- Song title and artist -->
+                    <VerticalStackLayout VerticalOptions="Center" Spacing="2" WidthRequest="180">
+                        <Label Text="{Binding CurrentTrack.Title, TargetNullValue='No track playing'}" 
+                               TextColor="White"
+                               FontSize="14" FontAttributes="Bold"
+                               LineBreakMode="TailTruncation"
+                               x:Name="TrackTitleLabel"/>
+                        <Label Text="{Binding CurrentTrack.Artist, TargetNullValue='—'}" 
+                               TextColor="#B0B0B0"
+                               FontSize="12"
+                               LineBreakMode="TailTruncation"
+                               x:Name="TrackArtistLabel"/>
+                    </VerticalStackLayout>
+                </HorizontalStackLayout>
+            </Grid>
+        </Border>
+        
+        <!-- SIDEBAR NAVIGATION -->
+        <Border Grid.Row="1" Grid.Column="0"
+                x:Name="SidebarContainer"
+                BackgroundColor="#12121280"
+                Stroke="#333333"
+                StrokeThickness="1"
+                Padding="12">
+            <Grid RowDefinitions="*,Auto">
+                <!-- Top navigation items -->
+                <VerticalStackLayout Grid.Row="0" Spacing="4">
+                    <!-- Home -->
+                    <Border BackgroundColor="#9B59B620"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="12,10"
+                            x:Name="NavHome">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnNavHomeTapped"/>
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="12">
+                            <Label Text="🏠" FontSize="18"/>
+                            <Label Text="Home" TextColor="White" FontSize="15" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Border>
+                    
+                    <!-- Search -->
+                    <Border BackgroundColor="Transparent"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="12,10"
+                            x:Name="NavSearch">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnNavSearchTapped"/>
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="12">
+                            <Label Text="🔍" FontSize="18"/>
+                            <Label Text="Search" TextColor="#B0B0B0" FontSize="15" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Border>
+                    
+                    <!-- Playlists -->
+                    <Border BackgroundColor="Transparent"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="12,10"
+                            x:Name="NavPlaylists">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnNavPlaylistsTapped"/>
+                        </Border.GestureRecognizers>
+                        <HorizontalStackLayout Spacing="12">
+                            <Label Text="📋" FontSize="18"/>
+                            <Label Text="Playlists" TextColor="#B0B0B0" FontSize="15" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+                
+                <!-- Bottom: Settings (ergonomic placement) -->
+                <Border Grid.Row="1" BackgroundColor="Transparent"
+                        StrokeShape="RoundRectangle 8"
+                        Padding="12,10"
+                        x:Name="NavSettings">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnNavSettingsTapped"/>
+                    </Border.GestureRecognizers>
+                    <HorizontalStackLayout Spacing="12">
+                        <Label Text="⚙️" FontSize="18"/>
+                        <Label Text="Settings" TextColor="#B0B0B0" FontSize="15" VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+                </Border>
+            </Grid>
+        </Border>
+        
+        <!-- MAIN CONTENT AREA -->
+        <!-- Content will be swapped in code-behind -->
+        <ContentView Grid.Row="1" Grid.Column="1"
+                     x:Name="MainContentArea"
+                     BackgroundColor="#0D0D0D"/>
+    </Grid>
+    
+</ContentPage>

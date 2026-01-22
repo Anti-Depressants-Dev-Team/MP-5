@@ -1,0 +1,76 @@
+﻿using Microsoft.Extensions.Logging;
+using MP5.Core.Interfaces;
+using MP5.Core.Services;
+using MP5.Core.ViewModels;
+using MP5.App.Services;
+
+namespace MP5.App;
+
+public static class MauiProgram
+{
+    public static MauiApp CreateMauiApp()
+    {
+        var builder = MauiApp.CreateBuilder();
+        builder
+            .UseMauiApp<App>()
+            .ConfigureFonts(fonts =>
+            {
+                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+            });
+
+        RegisterServices(builder.Services);
+
+#if DEBUG
+        builder.Logging.AddDebug();
+#endif
+
+        return builder.Build();
+    }
+    
+    private static void RegisterServices(IServiceCollection services)
+    {
+        // Platform specific Audio Service
+#if WINDOWS
+        services.AddSingleton<MP5.Core.Interfaces.IAudioService, MP5.App.Platforms.Windows.Services.WindowsAudioService>();
+#elif ANDROID
+        services.AddSingleton<MP5.Core.Interfaces.IAudioService, MP5.App.Platforms.Android.Services.AndroidAudioService>();
+#endif
+        
+        // Core services
+        services.AddSingleton<MauiMusicPlayerService>();
+        // Forward IMusicPlayerService to MauiMusicPlayerService
+        services.AddSingleton<IMusicPlayerService>(sp => sp.GetRequiredService<MauiMusicPlayerService>());
+        services.AddSingleton<ISettingsService, SettingsService>();
+        services.AddSingleton<IPlaylistService, PlaylistService>();
+        services.AddSingleton<IThemeService, ThemeService>();
+        
+        // Music Sources
+        services.AddSingleton<IDiscordRpcService, DiscordRpcServiceStub>();
+        services.AddSingleton<IScrobblerService, MP5.Core.Services.LastFmScrobblerService>();
+        services.AddSingleton<ISyncService, SyncServiceStub>();
+        services.AddSingleton<IUpdateService, UpdateServiceStub>();
+        
+        // Unified Source Service
+        services.AddSingleton<IMusicSourceService, MusicSourceService>();
+        
+        // Individual Sources (Registered as IMusicSource)
+        services.AddSingleton<IMusicSource, MP5.Core.Services.Sources.YouTubeMusicSource>();
+        services.AddSingleton<IMusicSource, MP5.Core.Services.Sources.SoundCloudMusicSource>();
+        
+        // ViewModels
+        services.AddSingleton<MainViewModel>();
+        services.AddSingleton<PlayerViewModel>();
+        services.AddSingleton<SearchViewModel>();
+        services.AddSingleton<SettingsViewModel>();
+        
+        // Pages
+        services.AddTransient<MainPage>();
+        
+        // Views
+        services.AddTransient<MP5.App.Views.HomeView>();
+        services.AddTransient<MP5.App.Views.SearchView>();
+        services.AddTransient<MP5.App.Views.PlaylistsView>();
+        services.AddTransient<MP5.App.Views.SettingsView>();
+    }
+}

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MP5.App.Views.HomeView"
+             BackgroundColor="#0D0D0D">
+    
+    <ScrollView>
+        <VerticalStackLayout Padding="24" Spacing="24">
+            <!-- Welcome header -->
+            <Label x:Name="GreetingLabel"
+                   Text="Good afternoon" 
+                   TextColor="White"
+                   FontSize="28" FontAttributes="Bold"/>
+            
+            <!-- Quick picks section -->
+            <VerticalStackLayout Spacing="12">
+                <Label Text="Quick picks" 
+                       TextColor="White"
+                       FontSize="20" FontAttributes="Bold"/>
+                
+                <FlexLayout Wrap="Wrap" JustifyContent="Start"
+                            Direction="Row" AlignItems="Start">
+                    <!-- Music cards -->
+                    <Border BackgroundColor="#1E1E1E"
+                            StrokeShape="RoundRectangle 12"
+                            Padding="0" Margin="0,0,12,12"
+                            WidthRequest="180" HeightRequest="220">
+                        <VerticalStackLayout>
+                            <Border HeightRequest="140" BackgroundColor="#2A2A2A"
+                                    StrokeShape="RoundRectangle 12,12,0,0">
+                                <Label Text="🎵" FontSize="48" HorizontalOptions="Center" VerticalOptions="Center"/>
+                            </Border>
+                            <VerticalStackLayout Padding="12" Spacing="4">
+                                <Label Text="Liked Songs" TextColor="White"
+                                       FontSize="14" FontAttributes="Bold" LineBreakMode="TailTruncation"/>
+                                <Label Text="Your favorites" TextColor="#B0B0B0"
+                                       FontSize="12" LineBreakMode="TailTruncation"/>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                    
+                    <Border BackgroundColor="#1E1E1E"
+                            StrokeShape="RoundRectangle 12"
+                            Padding="0" Margin="0,0,12,12"
+                            WidthRequest="180" HeightRequest="220">
+                        <VerticalStackLayout>
+                            <Border HeightRequest="140" BackgroundColor="#2A2A2A"
+                                    StrokeShape="RoundRectangle 12,12,0,0">
+                                <Label Text="🎧" FontSize="48" HorizontalOptions="Center" VerticalOptions="Center"/>
+                            </Border>
+                            <VerticalStackLayout Padding="12" Spacing="4">
+                                <Label Text="Discover Weekly" TextColor="White"
+                                       FontSize="14" FontAttributes="Bold"/>
+                                <Label Text="Made for you" TextColor="#B0B0B0"
+                                       FontSize="12"/>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                    
+                    <Border BackgroundColor="#1E1E1E"
+                            StrokeShape="RoundRectangle 12"
+                            Padding="0" Margin="0,0,12,12"
+                            WidthRequest="180" HeightRequest="220">
+                        <VerticalStackLayout>
+                            <Border HeightRequest="140" BackgroundColor="{DynamicResource AccentPrimary}" Opacity="0.3"
+                                    StrokeShape="RoundRectangle 12,12,0,0">
+                                <Label Text="🎤" FontSize="48" HorizontalOptions="Center" VerticalOptions="Center"/>
+                            </Border>
+                            <VerticalStackLayout Padding="12" Spacing="4">
+                                <Label Text="Top Hits 2026" TextColor="White"
+                                       FontSize="14" FontAttributes="Bold"/>
+                                <Label Text="Latest chart toppers" TextColor="#B0B0B0"
+                                       FontSize="12"/>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                </FlexLayout>
+            </VerticalStackLayout>
+            
+            <!-- Recently played section -->
+            <VerticalStackLayout Spacing="12">
+                <Label Text="Recently played" 
+                       TextColor="White"
+                       FontSize="20" FontAttributes="Bold"/>
+                
+                <Label Text="Start playing music to see your history here"
+                       TextColor="#707070" FontSize="14"/>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentView>

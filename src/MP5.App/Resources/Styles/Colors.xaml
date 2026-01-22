@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- MP^5 Purple Theme Colors -->
+    <Color x:Key="AccentPrimary">#9B59B6</Color>
+    <Color x:Key="AccentPrimaryDark">#8E44AD</Color>
+    <Color x:Key="AccentPrimaryLight">#BB8FCE</Color>
+    <Color x:Key="MidnightBlue">#190649</Color>
+    <Color x:Key="Magenta">#D600AA</Color>
+    <Color x:Key="OffBlack">#1f1f1f</Color>
+    
+    <!-- Glassmorphism Background Colors -->
+    <Color x:Key="BackgroundDark">#0D0D0D</Color>
+    <Color x:Key="BackgroundMedium">#1A1A1A</Color>
+    <Color x:Key="BackgroundLight">#2D2D2D</Color>
+    <Color x:Key="BackgroundGlass">#33FFFFFF</Color>
+    <Color x:Key="BackgroundGlassDark">#22000000</Color>
+    
+    <!-- Surface Colors (for cards, panels) -->
+    <Color x:Key="SurfacePrimary">#1E1E1E</Color>
+    <Color x:Key="SurfaceSecondary">#2A2A2A</Color>
+    <Color x:Key="SurfaceHover">#3A3A3A</Color>
+    <Color x:Key="SurfacePressed">#4A4A4A</Color>
+    
+    <!-- Text Colors -->
+    <Color x:Key="TextPrimary">#FFFFFF</Color>
+    <Color x:Key="TextSecondary">#B0B0B0</Color>
+    <Color x:Key="TextTertiary">#707070</Color>
+    <Color x:Key="TextAccent">#9B59B6</Color>
+    
+    <!-- Border Colors -->
+    <Color x:Key="BorderDefault">#333333</Color>
+    <Color x:Key="BorderAccent">#9B59B6</Color>
+    <Color x:Key="BorderGlass">#22FFFFFF</Color>
+    
+    <!-- Status Colors -->
+    <Color x:Key="Success">#2ECC71</Color>
+    <Color x:Key="Warning">#F39C12</Color>
+    <Color x:Key="Error">#E74C3C</Color>
+    <Color x:Key="Info">#3498DB</Color>
+    
+    <!-- Player Bar Colors -->
+    <Color x:Key="PlayerBackground">#14141480</Color>
+    <Color x:Key="PlayerBorder">#22FFFFFF</Color>
+    <Color x:Key="ProgressTrack">#404040</Color>
+    <Color x:Key="ProgressFill">#9B59B6</Color>
+    
+    <!-- Sidebar Colors -->
+    <Color x:Key="SidebarBackground">#12121280</Color>
+    <Color x:Key="SidebarItemHover">#2A2A2A</Color>
+    <Color x:Key="SidebarItemActive">#9B59B620</Color>
+    
+    <!-- Legacy/Fallback Colors (for MAUI defaults) -->
+    <Color x:Key="Primary">#9B59B6</Color>
+    <Color x:Key="PrimaryDark">#8E44AD</Color>
+    <Color x:Key="PrimaryDarkText">#FFFFFF</Color>
+    <Color x:Key="Secondary">#2ECC71</Color>
+    <Color x:Key="SecondaryDarkText">#FFFFFF</Color>
+    <Color x:Key="Tertiary">#3498DB</Color>
+    <Color x:Key="TertiaryDarkText">#FFFFFF</Color>
+    
+    <Color x:Key="White">White</Color>
+    <Color x:Key="Black">Black</Color>
+    <Color x:Key="Gray100">#E1E1E1</Color>
+    <Color x:Key="Gray200">#C8C8C8</Color>
+    <Color x:Key="Gray300">#ACACAC</Color>
+    <Color x:Key="Gray400">#919191</Color>
+    <Color x:Key="Gray500">#6E6E6E</Color>
+    <Color x:Key="Gray600">#404040</Color>
+    <Color x:Key="Gray900">#212121</Color>
+    <Color x:Key="Gray950">#141414</Color>
+
+</ResourceDictionary>
