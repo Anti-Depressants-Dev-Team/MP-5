@@ -16,4 +16,9 @@ public interface IMusicSourceService
     /// Resolves the audio stream URL for a given track, using fallback sources if necessary.
     /// </summary>
     Task<string> GetStreamUrlAsync(Track track);
+
+    /// <summary>
+    /// Gets recommendations based on a seed track.
+    /// </summary>
+    Task<IEnumerable<Track>> GetRecommendationsAsync(Track seedTrack);
 }

@@ -45,6 +45,15 @@ public class AppSettings
     
     /// <summary>Repeat mode</summary>
     public RepeatMode RepeatMode { get; set; } = RepeatMode.None;
+
+    /// <summary>Enable AdBlock and content filtering</summary>
+    public bool AdBlockEnabled { get; set; } = true;
+
+    /// <summary>Launch app on Windows startup</summary>
+    public bool IsStartupEnabled { get; set; }
+
+    /// <summary>Launch in fullscreen mode</summary>
+    public bool IsFullscreenEnabled { get; set; }
 }
 
 /// <summary>

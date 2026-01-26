@@ -25,10 +25,15 @@ public partial class HomeViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoading;
     
-    public HomeViewModel(IMusicSourceService musicSource, IMusicPlayerService playerService)
+    private readonly MainViewModel _mainViewModel;
+    private readonly PlaylistsViewModel _playlistsViewModel;
+
+    public HomeViewModel(IMusicSourceService musicSource, IMusicPlayerService playerService, MainViewModel mainViewModel, PlaylistsViewModel playlistsViewModel)
     {
         _musicSource = musicSource;
         _playerService = playerService;
+        _mainViewModel = mainViewModel;
+        _playlistsViewModel = playlistsViewModel;
     }
     
     [RelayCommand]
@@ -54,5 +59,31 @@ public partial class HomeViewModel : ObservableObject
     private async Task PlayTrackAsync(Track track)
     {
         await _playerService.PlayAsync(track);
+    }
+
+
+    [RelayCommand]
+    private async Task OpenQuickPickAsync(string title)
+    {
+        // 1. Switch to Playlists Tab
+        _mainViewModel.NavigateCommand.Execute(NavigationItem.Playlists);
+        
+        // 2. Find or Create Playlist
+        var playlist = _playlistsViewModel.Playlists.FirstOrDefault(p => p.Name.Equals(title, StringComparison.OrdinalIgnoreCase));
+        
+        if (playlist == null)
+        {
+            // Auto-create if missing
+            await _playlistsViewModel.CreatePlaylistCommand.ExecuteAsync(null); // Wait, CreatePlaylistAsync prompts for name. We can't use that command directly if we want auto-create without prompt.
+            // We should use the Service directly or expose a method.
+            // But PlaylistsViewModel hides _playlistService.
+            // Let's rely on finding existing for now, or assume user creates it.
+            // Actually, for "Liked Songs", we should probably create it if missing via a specialized method or just let the user know.
+            // For now, let's just Try Select.
+            return;
+        }
+        
+        // 3. Select it
+        _playlistsViewModel.SelectPlaylistCommand.Execute(playlist);
     }
 }

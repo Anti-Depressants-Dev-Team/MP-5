@@ -30,11 +30,15 @@ public static class MauiProgram
     
     private static void RegisterServices(IServiceCollection services)
     {
-        // Platform specific Audio Service
+        // Platform specific Services
 #if WINDOWS
         services.AddSingleton<MP5.Core.Interfaces.IAudioService, MP5.App.Platforms.Windows.Services.WindowsAudioService>();
+        services.AddSingleton<IPlatformService, MP5.App.Platforms.Windows.Services.WindowsPlatformService>();
 #elif ANDROID
         services.AddSingleton<MP5.Core.Interfaces.IAudioService, MP5.App.Platforms.Android.Services.AndroidAudioService>();
+        services.AddSingleton<IPlatformService, MP5.App.Platforms.Android.Services.AndroidPlatformService>();
+#else
+        services.AddSingleton<IPlatformService, MP5.App.Services.StubPlatformService>();
 #endif
         
         // Core services
@@ -46,9 +50,25 @@ public static class MauiProgram
         services.AddSingleton<IThemeService, ThemeService>();
         
         // Music Sources
-        services.AddSingleton<IDiscordRpcService, DiscordRpcServiceStub>();
+        services.AddSingleton<IDiscordRpcService, MP5.Core.Services.DiscordRpcService>();
         services.AddSingleton<IScrobblerService, MP5.Core.Services.LastFmScrobblerService>();
-        services.AddSingleton<ISyncService, SyncServiceStub>();
+        services.AddSingleton<IScrobblerService, MP5.Core.Services.ListenBrainzScrobblerService>();
+        services.AddSingleton<ISyncService, MP5.Core.Services.GoogleSyncService>();
+        
+        // Offline
+        services.AddSingleton<IOfflineService, MP5.Core.Services.OfflineService>();
+        
+        // File Picker
+        services.AddSingleton<IFilePickerService, MP5.App.Services.FilePickerService>();
+        services.AddSingleton<IPromptService, MP5.App.Services.MauiPromptService>();
+        
+        // Ad Block
+        services.AddSingleton<IAdBlockService, MP5.Core.Services.AdBlockService>();
+        
+        // Lyrics
+        services.AddSingleton<ILyricsProvider, MP5.Core.Services.LyricsProviders.LrcLibLyricsProvider>();
+        services.AddSingleton<ILyricsService, MP5.Core.Services.LyricsService>();
+        
         services.AddSingleton<IUpdateService, UpdateServiceStub>();
         
         // Unified Source Service
@@ -58,9 +78,10 @@ public static class MauiProgram
         services.AddSingleton<IMusicSource, MP5.Core.Services.Sources.YouTubeMusicSource>();
         services.AddSingleton<IMusicSource, MP5.Core.Services.Sources.SoundCloudMusicSource>();
         
-        // ViewModels
         services.AddSingleton<MainViewModel>();
+        services.AddSingleton<HomeViewModel>();
         services.AddSingleton<PlayerViewModel>();
+        services.AddSingleton<PlaylistsViewModel>();
         services.AddSingleton<SearchViewModel>();
         services.AddSingleton<SettingsViewModel>();
         

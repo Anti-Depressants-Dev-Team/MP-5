@@ -216,6 +216,19 @@ public abstract class MusicPlayerServiceBase : IMusicPlayerService, IDisposable
         await SetVolumeInternalAsync(Volume * VolumeBoostMultiplier);
     }
     
+    public bool AutoplayEnabled { get; set; } = true;
+    protected IMusicSourceService? MusicSourceService { get; set; } // Protected setter for injection in derived classes
+
+    public virtual async Task AddToQueueAsync(Track track)
+    {
+        Queue.AddToQueue(track);
+        // If stopped/empty, play immediately
+        if (State == PlaybackState.Stopped && CurrentTrack == null)
+        {
+             await PlayAsync(track);
+        }
+    }
+
     public virtual async Task NextAsync()
     {
         var nextTrack = Queue.GetNext();
@@ -225,6 +238,29 @@ public abstract class MusicPlayerServiceBase : IMusicPlayerService, IDisposable
         }
         else
         {
+            // End of queue reached. Check Autoplay.
+            if (AutoplayEnabled && CurrentTrack != null && MusicSourceService != null)
+            {
+                 System.Diagnostics.Debug.WriteLine($"Autoplay triggering for: {CurrentTrack.Title}");
+                 try 
+                 {
+                     var recommendations = await MusicSourceService.GetRecommendationsAsync(CurrentTrack);
+                     var nextAuto = recommendations.FirstOrDefault();
+                     
+                     if (nextAuto != null)
+                     {
+                         System.Diagnostics.Debug.WriteLine($"Autoplay found: {nextAuto.Title}");
+                         Queue.AddToQueue(nextAuto);
+                         await NextAsync(); // Recurse to play it
+                         return;
+                     }
+                 }
+                 catch (Exception ex)
+                 {
+                     System.Diagnostics.Debug.WriteLine($"Autoplay processing failed: {ex.Message}");
+                 }
+            }
+            
             await StopAsync();
         }
     }

@@ -21,8 +21,12 @@
             <PathGeometry x:Key="IconPrevious" Figures="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
             <PathGeometry x:Key="IconShuffle" Figures="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/>
             <PathGeometry x:Key="IconRepeat" Figures="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
+            <PathGeometry x:Key="IconRepeatOne" Figures="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4zm-4-2V9h-1l-2 1v1h1.5v4H13z"/>
             <PathGeometry x:Key="IconVolumeHigh" Figures="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
             <PathGeometry x:Key="IconVolumeMute" Figures="M7 9v6h4l5 5V4L7 9H3zm-5-6 l 2 2 l 2 2 l 2 2"/>
+            <PathGeometry x:Key="IconDownload" Figures="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/>
+            <PathGeometry x:Key="IconCloudDone" Figures="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM10 17l-3.5-3.5 1.41-1.41L10 14.17 15.18 9l1.41 1.41L10 17z"/>
+            <PathGeometry x:Key="IconLyrics" Figures="M15 4H5v16h14V8h-4V4zM3 4c0-1.1.9-2 2-2h10l6 6v12c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V4zm9 8H7v2h5v-2zm-5 4h8v2H7v-2z"/>
             
         </ResourceDictionary>
     </Application.Resources>

@@ -54,6 +54,43 @@ public partial class MainPage : ContentPage
         }
     }
 
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        _playerViewModel.PropertyChanged += OnPlayerViewModelPropertyChanged;
+    }
+
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        _playerViewModel.PropertyChanged -= OnPlayerViewModelPropertyChanged;
+    }
+
+    private void OnPlayerViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(PlayerViewModel.IsPlaying))
+        {
+            AnimateAlbumArt(_playerViewModel.IsPlaying);
+        }
+    }
+
+    private async void AnimateAlbumArt(bool isPlaying)
+    {
+        if (AlbumArtImage == null) return;
+        
+        // Subtle pulse/scale effect
+        if (isPlaying)
+        {
+            // Scale UP slightly
+            await AlbumArtImage.ScaleTo(1.1, 400, Easing.CubicOut);
+        }
+        else
+        {
+            // Scale back to normal
+            await AlbumArtImage.ScaleTo(1.0, 400, Easing.CubicOut);
+        }
+    }
+
     private void UpdatePlayerLayout()
     {
         var grid = (Grid)Content;

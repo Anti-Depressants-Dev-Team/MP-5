@@ -1,68 +1,112 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:MP5.Core.ViewModels;assembly=MP5.Core"
              x:Class="MP5.App.Views.PlaylistsView"
+             x:Name="PlaylistsViewRoot"
              BackgroundColor="#0D0D0D">
     
-    <Grid RowDefinitions="Auto,*">
-        <HorizontalStackLayout Grid.Row="0" Spacing="16" Padding="24" VerticalOptions="Center">
-            <Label Text="Your Library" TextColor="White" FontSize="28" FontAttributes="Bold"/>
-            <Button Text="+" FontSize="20" WidthRequest="40" HeightRequest="40" CornerRadius="20" BackgroundColor="#2A2A2A" TextColor="White"/>
-        </HorizontalStackLayout>
+    <Grid>
+        <!-- MASTER LIST VIEW -->
+        <Grid RowDefinitions="Auto,*" IsVisible="{Binding SelectedPlaylist, Converter={StaticResource InvertedBoolConverter}}">
+            <HorizontalStackLayout Grid.Row="0" Spacing="16" Padding="24" VerticalOptions="Center">
+                <Label Text="Your Library" TextColor="White" FontSize="28" FontAttributes="Bold"/>
+                <Button Text="+" Command="{Binding CreatePlaylistCommand}" FontSize="20" WidthRequest="40" HeightRequest="40" CornerRadius="20" BackgroundColor="#2A2A2A" TextColor="White"/>
+                <Button Text="Import" Command="{Binding ImportPlaylistCommand}" BackgroundColor="#2A2A2A" TextColor="White" HeightRequest="40" CornerRadius="20" />
+            </HorizontalStackLayout>
+            
+            <CollectionView Grid.Row="1" ItemsSource="{Binding Playlists}" SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="50,*,Auto" ColumnSpacing="12" Padding="24,8" BackgroundColor="Transparent">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type x:Object}}, Path=BindingContext.SelectPlaylistCommand}" CommandParameter="{Binding .}"/>
+                            </Grid.GestureRecognizers>
+                            
+                            <Border Grid.Column="0" HeightRequest="50" WidthRequest="50" StrokeShape="RoundRectangle 4" BackgroundColor="#2A2A2A">
+                                <Label Text="🎵" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
+                            </Border>
+                            
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                <Label Text="{Binding Name}" TextColor="White" FontSize="16" FontAttributes="Bold"/>
+                                <Label Text="{Binding Tracks.Count, StringFormat='{0} songs'}" TextColor="#B0B0B0" FontSize="14"/>
+                            </VerticalStackLayout>
+                            
+                            <HorizontalStackLayout Grid.Column="2" Spacing="8">
+                                <Button Text="Export" 
+                                        Command="{Binding Source={x:Reference PlaylistsViewRoot}, Path=BindingContext.ExportPlaylistCommand}" 
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="Transparent" TextColor="#B0B0B0" FontSize="12"/>
+                                 <Button Text="Delete" 
+                                        Command="{Binding Source={x:Reference PlaylistsViewRoot}, Path=BindingContext.DeletePlaylistCommand}" 
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="Transparent" TextColor="#E74C3C" FontSize="12"/>
+                            </HorizontalStackLayout>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
         
-        <ScrollView Grid.Row="1">
-            <VerticalStackLayout Padding="24" Spacing="0">
-                <!-- Filters -->
-                <ScrollView Orientation="Horizontal" HorizontalScrollBarVisibility="Never" Margin="0,0,0,16">
-                    <HorizontalStackLayout Spacing="8">
-                        <Button Text="Playlists" BackgroundColor="#2A2A2A" TextColor="White" CornerRadius="16" HeightRequest="32" Padding="16,0"/>
-                        <Button Text="Artists" BackgroundColor="#2A2A2A" TextColor="White" CornerRadius="16" HeightRequest="32" Padding="16,0"/>
-                        <Button Text="Albums" BackgroundColor="#2A2A2A" TextColor="White" CornerRadius="16" HeightRequest="32" Padding="16,0"/>
-                    </HorizontalStackLayout>
-                </ScrollView>
-                
-                <!-- List Header -->
-                <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,16">
-                    <Label Text="Most recent" TextColor="#B0B0B0" FontSize="14" VerticalOptions="Center"/>
-                    <Label Grid.Column="1" Text="📅" FontSize="16" VerticalOptions="Center"/>
-                </Grid>
-                
-                <!-- Playlist Items -->
-                <VerticalStackLayout Spacing="16">
-                    <!-- Liked Songs -->
-                    <Grid ColumnDefinitions="50,*" ColumnSpacing="12">
-                        <Border Grid.Column="0" HeightRequest="50" WidthRequest="50" StrokeShape="RoundRectangle 4" BackgroundColor="#450AF5">
-                            <Label Text="♥" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
-                        </Border>
-                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                            <Label Text="Liked Songs" TextColor="White" FontSize="16" FontAttributes="Bold"/>
-                            <Label Text="Playlist • 123 songs" TextColor="#B0B0B0" FontSize="14"/>
-                        </VerticalStackLayout>
-                    </Grid>
-                    
-                    <!-- MP^5 Favorites -->
-                    <Grid ColumnDefinitions="50,*" ColumnSpacing="12">
-                         <Border Grid.Column="0" HeightRequest="50" WidthRequest="50" StrokeShape="RoundRectangle 4" BackgroundColor="#9B59B6">
-                            <Label Text="🎵" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
-                        </Border>
-                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                            <Label Text="MP^5 Favorites" TextColor="White" FontSize="16" FontAttributes="Bold"/>
-                            <Label Text="Playlist • Razvan" TextColor="#B0B0B0" FontSize="14"/>
-                        </VerticalStackLayout>
-                    </Grid>
-                    
-                    <!-- Coding Focus -->
-                     <Grid ColumnDefinitions="50,*" ColumnSpacing="12">
-                         <Border Grid.Column="0" HeightRequest="50" WidthRequest="50" StrokeShape="RoundRectangle 4" BackgroundColor="#2A2A2A">
-                            <Label Text="💻" TextColor="White" HorizontalOptions="Center" VerticalOptions="Center"/>
-                        </Border>
-                        <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
-                            <Label Text="Coding Focus" TextColor="White" FontSize="16" FontAttributes="Bold"/>
-                            <Label Text="Playlist • Neural Net" TextColor="#B0B0B0" FontSize="14"/>
-                        </VerticalStackLayout>
-                    </Grid>
+        <!-- DETAIL VIEW -->
+        <Grid RowDefinitions="Auto,*" IsVisible="{Binding SelectedPlaylist, Converter={StaticResource BoolToObjectConverter}, ConverterParameter='True|False'}">
+            <!-- Header -->
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Padding="24" ColumnSpacing="16" BackgroundColor="#1A1A1A">
+                <Button Grid.Column="0" Text="←" Command="{Binding ClosePlaylistCommand}" 
+                        BackgroundColor="Transparent" TextColor="White" FontSize="20" 
+                        WidthRequest="40" HeightRequest="40"/>
+                        
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                    <Label Text="{Binding SelectedPlaylist.Name}" FontSize="24" FontAttributes="Bold" TextColor="White"/>
+                    <Label Text="{Binding SelectedPlaylist.Type}" TextColor="#AAA" FontSize="14"/>
                 </VerticalStackLayout>
-            </VerticalStackLayout>
-        </ScrollView>
+                
+                <Button Grid.Column="2" Text="Play All" 
+                        Command="{Binding PlayTrackAsync}"  
+                        CommandParameter="{Binding SelectedPlaylist.Tracks[0]}"
+                        IsVisible="{Binding SelectedPlaylist.Tracks.Count, Converter={StaticResource BoolToObjectConverter}, ConverterParameter='True|False'}" 
+                        BackgroundColor="{DynamicResource AccentPrimary}" TextColor="White" CornerRadius="20" HeightRequest="40"/>
+            </Grid>
+            
+            <!-- Tracks List -->
+            <CollectionView Grid.Row="1" ItemsSource="{Binding SelectedPlaylist.Tracks}" SelectionMode="None">
+                <CollectionView.EmptyView>
+                     <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
+                        <Label Text="This playlist is empty" TextColor="#666" FontSize="18"/>
+                        <Label Text="Add songs from Search or Home" TextColor="#444" FontSize="14"/>
+                     </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid ColumnDefinitions="50,*,Auto" ColumnSpacing="12" Padding="24,8">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type x:Object}}, Path=BindingContext.PlayTrackCommand}" CommandParameter="{Binding .}"/>
+                            </Grid.GestureRecognizers>
+                            
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="Add to Queue" 
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type x:Object}}, Path=BindingContext.PlayerViewModel.AddToQueueCommand}"
+                                                    CommandParameter="{Binding .}"/>
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
+                            
+                            <Image Grid.Column="0" Source="{Binding ThumbnailUrl}" Aspect="AspectFill" HeightRequest="50" WidthRequest="50">
+                                <Image.Clip>
+                                    <RoundRectangleGeometry CornerRadius="4"/>
+                                </Image.Clip>
+                            </Image>
+                            
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                <Label Text="{Binding Title}" TextColor="White" FontSize="14" FontAttributes="Bold" LineBreakMode="TailTruncation"/>
+                                <Label Text="{Binding Artist}" TextColor="#B0B0B0" FontSize="12" LineBreakMode="TailTruncation"/>
+                            </VerticalStackLayout>
+
+                            <Label Grid.Column="2" Text="{Binding Duration, StringFormat='{0:mm\\:ss}'}" TextColor="#666" FontSize="12" VerticalOptions="Center"/>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
     </Grid>
 </ContentView>

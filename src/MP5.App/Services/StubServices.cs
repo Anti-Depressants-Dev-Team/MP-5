@@ -10,6 +10,7 @@ public class DiscordRpcServiceStub : IDiscordRpcService
     public Task UpdatePresenceAsync(Track track, bool isPlaying, TimeSpan position) => Task.CompletedTask;
     public Task ClearPresenceAsync() => Task.CompletedTask;
     public Task DisconnectAsync() => Task.CompletedTask;
+    public void SetEnabled(bool isEnabled) { }
 }
 
 public class SyncServiceStub : ISyncService

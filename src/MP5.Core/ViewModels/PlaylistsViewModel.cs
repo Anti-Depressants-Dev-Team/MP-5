@@ -31,10 +31,15 @@ public partial class PlaylistsViewModel : ObservableObject
     [ObservableProperty]
     private PlaylistType _newPlaylistType = PlaylistType.Default;
     
-    public PlaylistsViewModel(IPlaylistService playlistService, IMusicPlayerService playerService)
+    private readonly IFilePickerService _filePickerService;
+    private readonly IPromptService _promptService;
+    
+    public PlaylistsViewModel(IPlaylistService playlistService, IMusicPlayerService playerService, IFilePickerService filePickerService, IPromptService promptService)
     {
         _playlistService = playlistService;
         _playerService = playerService;
+        _filePickerService = filePickerService;
+        _promptService = promptService;
     }
     
     [RelayCommand]
@@ -55,12 +60,15 @@ public partial class PlaylistsViewModel : ObservableObject
     [RelayCommand]
     private async Task CreatePlaylistAsync()
     {
-        if (string.IsNullOrWhiteSpace(NewPlaylistName))
+        var name = await _promptService.DisplayPromptAsync("New Playlist", "Enter playlist name:");
+        if (string.IsNullOrWhiteSpace(name))
             return;
             
-        var playlist = await _playlistService.CreatePlaylistAsync(NewPlaylistName, NewPlaylistType);
-        Playlists = [.. Playlists, playlist];
-        NewPlaylistName = string.Empty;
+        var playlist = await _playlistService.CreatePlaylistAsync(name, NewPlaylistType);
+        
+        // Refresh list
+        var playlists = await _playlistService.GetAllPlaylistsAsync();
+        Playlists = playlists.ToList();
     }
     
     [RelayCommand]
@@ -77,6 +85,12 @@ public partial class PlaylistsViewModel : ObservableObject
     }
     
     [RelayCommand]
+    private void ClosePlaylist()
+    {
+        SelectedPlaylist = null;
+    }
+    
+    [RelayCommand]
     private async Task PlayTrackAsync(Track track)
     {
         await _playerService.PlayAsync(track);
@@ -85,19 +99,47 @@ public partial class PlaylistsViewModel : ObservableObject
     [RelayCommand]
     private async Task ExportPlaylistAsync(Playlist playlist)
     {
-        // File picker would be used here
-        // var path = await FilePicker.SaveAsync(...);
-        // await _playlistService.ExportPlaylistAsync(playlist.Id, path);
+        try 
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(playlist);
+            var fileName = $"{playlist.Name}.json";
+            await _filePickerService.SaveJsonFileAsync(fileName, json);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Export Failed: {ex.Message}");
+        }
     }
     
     [RelayCommand]
     private async Task ImportPlaylistAsync()
     {
-        // File picker would be used here
-        // var result = await FilePicker.PickAsync(...);
-        // var playlist = await _playlistService.ImportPlaylistAsync(result.FullPath);
-        // Playlists = [.. Playlists, playlist];
-        await Task.CompletedTask;
+        try
+        {
+            var json = await _filePickerService.PickJsonFileAsync();
+            if (!string.IsNullOrEmpty(json))
+            {
+                var playlist = System.Text.Json.JsonSerializer.Deserialize<Playlist>(json);
+                if (playlist != null)
+                {
+                    // Assign new ID to avoid conflicts
+                    var newPlaylist = await _playlistService.CreatePlaylistAsync(playlist.Name, playlist.Type);
+                    
+                    // Add tracks
+                    foreach (var track in playlist.Tracks)
+                    {
+                         await _playlistService.AddTrackAsync(newPlaylist.Id, track);
+                    }
+                    
+                    // Refresh
+                    await LoadAsync();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+             System.Diagnostics.Debug.WriteLine($"Import Failed: {ex.Message}");
+        }
     }
     
     [RelayCommand]

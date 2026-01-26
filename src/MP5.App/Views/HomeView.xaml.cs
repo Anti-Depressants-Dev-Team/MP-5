@@ -1,10 +1,13 @@
+using MP5.Core.ViewModels;
+
 namespace MP5.App.Views;
 
 public partial class HomeView : ContentView
 {
-	public HomeView()
+	public HomeView(HomeViewModel viewModel)
 	{
 		InitializeComponent();
+        BindingContext = viewModel;
         UpdateGreeting();
 	}
     

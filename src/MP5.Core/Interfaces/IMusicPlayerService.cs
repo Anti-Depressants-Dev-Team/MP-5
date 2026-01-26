@@ -28,6 +28,12 @@ public interface IMusicPlayerService
     /// <summary>Set volume boost multiplier (1.0 = normal, up to 2.0 = boosted)</summary>
     Task SetVolumeBoostAsync(double boostMultiplier);
     
+    /// <summary>Add a track to the end of the queue</summary>
+    Task AddToQueueAsync(Track track);
+    
+    /// <summary>Whether generated autoplay is enabled</summary>
+    bool AutoplayEnabled { get; set; }
+    
     /// <summary>Skip to next track in queue</summary>
     Task NextAsync();
     

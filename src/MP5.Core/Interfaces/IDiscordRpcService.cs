@@ -21,4 +21,7 @@ public interface IDiscordRpcService
     
     /// <summary>Disconnect from Discord</summary>
     Task DisconnectAsync();
+
+    /// <summary>Enable or disable the service runtime</summary>
+    void SetEnabled(bool isEnabled);
 }

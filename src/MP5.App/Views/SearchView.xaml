@@ -74,11 +74,24 @@
                             SelectionMode="None">
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="12,8" ColumnDefinitions="Auto,*,Auto">
+                        <Grid Padding="12,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type ContentView}}, Path=BindingContext.PlayTrackCommand}"
                                                       CommandParameter="{Binding .}"/>
                             </Grid.GestureRecognizers>
+                            
+                            <FlyoutBase.ContextFlyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Text="Add to Queue" 
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentView}}, Path=BindingContext.PlayerViewModel.AddToQueueCommand}"
+                                                    CommandParameter="{Binding .}"/>
+                                </MenuFlyout>
+                            </FlyoutBase.ContextFlyout>
                             
                             <Border Grid.Column="0" StrokeShape="RoundRectangle 4" WidthRequest="48" HeightRequest="48" BackgroundColor="#333" Margin="0,0,12,0">
                                 <Image Source="{Binding ThumbnailUrl}" Aspect="AspectFill"/>

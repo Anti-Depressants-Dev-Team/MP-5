@@ -34,12 +34,22 @@ public partial class SettingsViewModel : ObservableObject
     
     [ObservableProperty]
     private bool _enableDiscordRpc = true;
+
+    partial void OnEnableDiscordRpcChanged(bool value)
+    {
+        _discordService.SetEnabled(value);
+        _ = SaveAsync();
+    }
     
     [ObservableProperty]
     private bool _enableLastFm;
+
+    partial void OnEnableLastFmChanged(bool value) => _ = SaveAsync();
     
     [ObservableProperty]
     private bool _enableListenBrainz;
+
+    partial void OnEnableListenBrainzChanged(bool value) => _ = SaveAsync();
     
     [ObservableProperty]
     private bool _googleSyncEnabled;
@@ -49,6 +59,8 @@ public partial class SettingsViewModel : ObservableObject
     
     [ObservableProperty]
     private double _volumeBoostMultiplier = 1.0;
+
+    partial void OnVolumeBoostMultiplierChanged(double value) => _ = SaveAsync();
     
     [ObservableProperty]
     private UpdateInfo? _availableUpdate;
@@ -58,6 +70,33 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _crossfadeEnabled;
+
+    [ObservableProperty]
+    private bool _isStartupEnabled;
+
+    [ObservableProperty]
+    private bool _isFullscreenEnabled;
+
+    partial void OnIsStartupEnabledChanged(bool value)
+    {
+         _platformService.SetStartup(value);
+         _ = SaveAsync();
+    }
+
+    partial void OnIsFullscreenEnabledChanged(bool value)
+    {
+         _platformService.SetFullscreen(value);
+         _ = SaveAsync();
+    }
+
+    [ObservableProperty]
+    private bool _adBlockEnabled;
+
+    partial void OnAdBlockEnabledChanged(bool value)
+    {
+         _adBlockService.IsEnabled = value;
+         _ = SaveAsync();
+    }
 
     public bool IsPsychopathMode
     {
@@ -88,21 +127,31 @@ public partial class SettingsViewModel : ObservableObject
     ];
     
     private readonly IThemeService _themeService;
+    private readonly IPlatformService _platformService;
+    private readonly IAdBlockService _adBlockService;
     
     public SettingsViewModel(
         ISettingsService settingsService,
         IDiscordRpcService discordService,
-        IScrobblerService lastFmService,
+        IEnumerable<IScrobblerService> scrobblers,
         ISyncService syncService,
         IUpdateService updateService,
-        IThemeService themeService)
+        IThemeService themeService,
+        IPlatformService platformService,
+        IAdBlockService adBlockService)
     {
         _settingsService = settingsService;
         _discordService = discordService;
-        _lastFmService = lastFmService;
+        
+        // Resolve specific services for settings management
+        _lastFmService = scrobblers.FirstOrDefault(s => s is MP5.Core.Services.LastFmScrobblerService);
+        _listenBrainzService = scrobblers.FirstOrDefault(s => s is MP5.Core.Services.ListenBrainzScrobblerService);
+        
         _syncService = syncService;
         _updateService = updateService;
         _themeService = themeService;
+        _platformService = platformService;
+        _adBlockService = adBlockService;
     }
     
     [RelayCommand]
@@ -136,9 +185,19 @@ public partial class SettingsViewModel : ObservableObject
         EnableLastFm = Settings.EnableLastFmScrobbling;
         EnableListenBrainz = Settings.EnableListenBrainz;
         VolumeBoostMultiplier = Settings.VolumeBoostMultiplier;
+        AdBlockEnabled = Settings.AdBlockEnabled;
         
         IsLastFmAuthenticated = !string.IsNullOrEmpty(Settings.LastFmSessionKey);
         AuthenticatedLastFmUser = Settings.LastFmUsername;
+        
+        IsListenBrainzAuthenticated = !string.IsNullOrEmpty(Settings.ListenBrainzToken);
+        
+        IsStartupEnabled = Settings.IsStartupEnabled;
+        IsFullscreenEnabled = Settings.IsFullscreenEnabled;
+        
+        // Apply platform side effects immediately on load
+        _platformService.SetStartup(IsStartupEnabled);
+        _platformService.SetFullscreen(IsFullscreenEnabled);
     }
     
     [RelayCommand]
@@ -151,6 +210,9 @@ public partial class SettingsViewModel : ObservableObject
         Settings.EnableLastFmScrobbling = EnableLastFm;
         Settings.EnableListenBrainz = EnableListenBrainz;
         Settings.VolumeBoostMultiplier = VolumeBoostMultiplier;
+        Settings.AdBlockEnabled = AdBlockEnabled;
+        Settings.IsStartupEnabled = IsStartupEnabled;
+        Settings.IsFullscreenEnabled = IsFullscreenEnabled;
         
         await _settingsService.SaveSettingsAsync(Settings);
     }
@@ -263,6 +325,52 @@ public partial class SettingsViewModel : ObservableObject
             IsLastFmAuthenticated = false;
             AuthenticatedLastFmUser = null;
             EnableLastFm = false;
+            await SaveAsync();
+        }
+    }
+    
+    // --- ListenBrainz ---
+    
+    [ObservableProperty]
+    private string _listenBrainzTokenInput = string.Empty;
+    
+    [ObservableProperty]
+    private bool _isListenBrainzAuthenticated;
+    
+    [RelayCommand]
+    private async Task ConnectListenBrainzAsync()
+    {
+        if (string.IsNullOrWhiteSpace(ListenBrainzTokenInput)) return;
+        
+        IsLoading = true;
+        try
+        {
+            if (_listenBrainzService != null)
+            {
+                var success = await _listenBrainzService.AuthenticateAsync("token", ListenBrainzTokenInput);
+                if (success)
+                {
+                    IsListenBrainzAuthenticated = true;
+                    EnableListenBrainz = true;
+                    ListenBrainzTokenInput = string.Empty;
+                    await SaveAsync();
+                }
+            }
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+    
+    [RelayCommand]
+    private async Task DisconnectListenBrainzAsync()
+    {
+        if (_listenBrainzService != null)
+        {
+            await _listenBrainzService.LogoutAsync();
+            IsListenBrainzAuthenticated = false;
+            EnableListenBrainz = false;
             await SaveAsync();
         }
     }

@@ -25,6 +25,9 @@
                             StrokeShape="RoundRectangle 12"
                             Padding="0" Margin="0,0,12,12"
                             WidthRequest="180" HeightRequest="220">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenQuickPickCommand}" CommandParameter="Liked Songs"/>
+                        </Border.GestureRecognizers>
                         <VerticalStackLayout>
                             <Border HeightRequest="140" BackgroundColor="#2A2A2A"
                                     StrokeShape="RoundRectangle 12,12,0,0">
@@ -43,6 +46,9 @@
                             StrokeShape="RoundRectangle 12"
                             Padding="0" Margin="0,0,12,12"
                             WidthRequest="180" HeightRequest="220">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenQuickPickCommand}" CommandParameter="Discover Weekly"/>
+                        </Border.GestureRecognizers>
                         <VerticalStackLayout>
                             <Border HeightRequest="140" BackgroundColor="#2A2A2A"
                                     StrokeShape="RoundRectangle 12,12,0,0">
@@ -61,6 +67,9 @@
                             StrokeShape="RoundRectangle 12"
                             Padding="0" Margin="0,0,12,12"
                             WidthRequest="180" HeightRequest="220">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding OpenQuickPickCommand}" CommandParameter="Top Hits 2026"/>
+                        </Border.GestureRecognizers>
                         <VerticalStackLayout>
                             <Border HeightRequest="140" BackgroundColor="{DynamicResource AccentPrimary}" Opacity="0.3"
                                     StrokeShape="RoundRectangle 12,12,0,0">

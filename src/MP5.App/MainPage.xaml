@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MP5.App.MainPage"
+             x:Name="MainPageRef"
              xmlns:converters="clr-namespace:MP5.App.Converters"
              BackgroundColor="#0D0D0D"
              Shell.NavBarIsVisible="False">
@@ -34,22 +35,53 @@
                 x:Name="TopPlayerBar">
             <Grid ColumnDefinitions="Auto,*,Auto">
                 <!-- Left: Volume controls -->
-                <HorizontalStackLayout Grid.Column="0" Spacing="12" VerticalOptions="Center">
+                <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
+                    <!-- Volume Icon (Click to Mute/Unmute effectively, currently mapped to Boost but let's separate) -->
+                    <!-- I will repurpose the Icon Tap to be just visual or Mute, and add a separate Boost button -->
+                    
                     <!-- Volume Icon -->
-                    <Border BackgroundColor="Transparent" StrokeThickness="0" Padding="8">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Tapped="OnVolumeButtonClicked"/>
-                        </Border.GestureRecognizers>
-                        <Path Data="{StaticResource IconVolumeHigh}" Fill="White" Aspect="Uniform" HeightRequest="20" WidthRequest="20"/>
-                    </Border>
+                    <Path Data="{StaticResource IconVolumeHigh}" Fill="White" Aspect="Uniform" HeightRequest="20" WidthRequest="20"/>
                     
                     <!-- Volume Slider -->
                     <Slider Minimum="0" Maximum="1" Value="{Binding Volume, Mode=TwoWay}"
-                            WidthRequest="120"
+                            WidthRequest="100"
                             MinimumTrackColor="{DynamicResource AccentPrimary}"
                             MaximumTrackColor="#404040"
                             ThumbColor="{DynamicResource AccentPrimary}"
                             x:Name="VolumeSlider"/>
+                            
+                    <!-- Boost Toggle Button -->
+                    <Border StrokeShape="RoundRectangle 4" 
+                            StrokeThickness="0" 
+                            Padding="6,2"
+                            VerticalOptions="Center">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding ToggleVolumeBoostCommand}"/>
+                        </Border.GestureRecognizers>
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="BackgroundColor" Value="#333"/>
+                                <Style.Triggers>
+                                    <DataTrigger TargetType="Border" Binding="{Binding IsVolumeBoosted}" Value="True">
+                                        <Setter Property="BackgroundColor" Value="{DynamicResource AccentPrimary}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        
+                        <Label Text="BOOST" FontSize="10" FontAttributes="Bold">
+                             <Label.Style>
+                                <Style TargetType="Label">
+                                    <Setter Property="TextColor" Value="#888"/>
+                                    <Style.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding IsVolumeBoosted}" Value="True">
+                                            <Setter Property="TextColor" Value="White"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                             </Label.Style>
+                        </Label>
+                    </Border>
                 </HorizontalStackLayout>
                 
                 <!-- Center: Playback controls + Progress -->
@@ -123,16 +155,43 @@
                                             <!-- Repeat All -->
                                             <DataTrigger TargetType="Path" Binding="{Binding IsRepeatAll}" Value="True">
                                                 <Setter Property="Fill" Value="{DynamicResource AccentPrimary}"/>
+                                                <Setter Property="Data" Value="{StaticResource IconRepeat}"/>
                                             </DataTrigger>
                                             <!-- Repeat One -->
                                             <DataTrigger TargetType="Path" Binding="{Binding IsRepeatOne}" Value="True">
                                                 <Setter Property="Fill" Value="{DynamicResource AccentPrimary}"/>
+                                                <Setter Property="Data" Value="{StaticResource IconRepeatOne}"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Path.Style>
                             </Path>
                         </Border>
+                        
+                         <!-- Download -->
+                        <Border BackgroundColor="Transparent" StrokeThickness="0" Padding="8">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding ToggleDownloadCommand}"/>
+                            </Border.GestureRecognizers>
+                            <Path x:Name="DownloadIcon" Aspect="Uniform" HeightRequest="16" WidthRequest="16">
+                                 <Path.Style>
+                                    <Style TargetType="Path">
+                                        <Setter Property="Data" Value="{StaticResource IconDownload}"/>
+                                        <Setter Property="Fill" Value="#B0B0B0"/>
+                                        <Style.Triggers>
+                                            <DataTrigger TargetType="Path" Binding="{Binding IsOfflineAvailable}" Value="True">
+                                                <Setter Property="Data" Value="{StaticResource IconCloudDone}"/>
+                                                <Setter Property="Fill" Value="{DynamicResource AccentPrimary}"/>
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Path" Binding="{Binding IsDownloading}" Value="True">
+                                                <Setter Property="Fill" Value="#4285F4"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Path.Style>
+                            </Path>
+                        </Border>
+                        
                     </HorizontalStackLayout>
                     
                     <!-- Progress Bar -->
@@ -165,7 +224,7 @@
                              <!-- Placeholder -->
                              <Label Text="🎵" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center" TextColor="#555"/>
                              <!-- Real Image -->
-                             <Image Source="{Binding CurrentTrack.ThumbnailUrl}" Aspect="AspectFill"/>
+                             <Image x:Name="AlbumArtImage" Source="{Binding CurrentTrack.ThumbnailUrl}" Aspect="AspectFill"/>
                         </Grid>
                     </Border>
                     
@@ -260,6 +319,52 @@
         <ContentView Grid.Row="1" Grid.Column="1"
                      x:Name="MainContentArea"
                      BackgroundColor="#0D0D0D"/>
+    <!-- LYRICS OVERLAY (Disabled) -->
+    <!--
+    <Grid IsVisible="{Binding PlayerViewModel.ShowLyrics, Source={x:Reference MainPageRef}}"
+          BackgroundColor="#FF0D0D0D"
+          Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+          ZIndex="999"
+          RowDefinitions="Auto,*,Auto"
+          Padding="32">
+        
+        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,24">
+            <VerticalStackLayout>
+                <Label Text="{Binding PlayerViewModel.CurrentTrack.Title, Source={x:Reference MainPageRef}}" FontSize="28" FontAttributes="Bold" TextColor="White"/>
+                <Label Text="{Binding PlayerViewModel.CurrentTrack.Artist, Source={x:Reference MainPageRef}}" FontSize="18" TextColor="#AAA"/>
+            </VerticalStackLayout>
+            
+            <Button Grid.Column="1" Text="✕" Command="{Binding PlayerViewModel.ToggleLyricsCommand, Source={x:Reference MainPageRef}}"
+                    BackgroundColor="#333" TextColor="White" FontSize="18" CornerRadius="20" WidthRequest="40" HeightRequest="40"/>
+        </Grid>
+        
+        <Grid Grid.Row="1">
+             <ScrollView IsVisible="{Binding PlayerViewModel.Lyrics.IsSynced, Source={x:Reference MainPageRef}, Converter={StaticResource InvertedBoolConverter}, TargetNullValue=True}">
+                 <VerticalStackLayout Spacing="20" VerticalOptions="Center">
+                     <Label Text="{Binding PlayerViewModel.LyricStatus, Source={x:Reference MainPageRef}, TargetNullValue='Searching...'}" 
+                            IsVisible="{Binding PlayerViewModel.Lyrics, Source={x:Reference MainPageRef}, Converter={StaticResource BoolToObjectConverter}, ConverterParameter='True|False'}"
+                            TextColor="#888" FontSize="18" HorizontalOptions="Center"/>
+                            
+                     <Label Text="{Binding PlayerViewModel.Lyrics.PlainText, Source={x:Reference MainPageRef}}" 
+                            TextColor="#EEE" FontSize="22" LineHeight="1.5"
+                            HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                 </VerticalStackLayout>
+             </ScrollView>
+             
+             <VerticalStackLayout Spacing="32" VerticalOptions="Center"
+                                  IsVisible="{Binding PlayerViewModel.Lyrics.IsSynced, Source={x:Reference MainPageRef}}">
+                                  
+                 <Label Text="{Binding PlayerViewModel.ActiveLyricsLine.Text, Source={x:Reference MainPageRef}, TargetNullValue='...'}"
+                        TextColor="{DynamicResource AccentPrimary}"
+                        FontSize="40" FontAttributes="Bold"
+                        HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+             </VerticalStackLayout>
+        </Grid>
+        
+        <Label Grid.Row="2" Text="Lyrics powered by LrcLib" TextColor="#444" FontSize="12" HorizontalOptions="Center"/>
+    </Grid>
+    -->
+    
     </Grid>
     
 </ContentPage>

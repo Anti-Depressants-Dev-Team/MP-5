@@ -78,6 +78,91 @@
                                 IsVisible="{Binding IsLastFmAuthenticated}"/>
                      </VerticalStackLayout>
                 </Frame>
+                
+                <Frame BackgroundColor="#1E1E1E" BorderColor="#333333" CornerRadius="8" Padding="16">
+                     <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                             <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                 <Label Text="ListenBrainz" TextColor="White" FontAttributes="Bold" VerticalOptions="Center"/>
+                            </HorizontalStackLayout>
+                            <Label Text="Connected" 
+                                   TextColor="#2ECC71" 
+                                   IsVisible="{Binding IsListenBrainzAuthenticated}"
+                                   VerticalOptions="Center" Grid.Column="1"/>
+                        </Grid>
+                        
+                        <!-- Login Form -->
+                        <VerticalStackLayout Spacing="8" IsVisible="{Binding IsListenBrainzAuthenticated, Converter={StaticResource InvertedBoolConverter}}">
+                            <Label Text="Enter User Token" TextColor="#888" FontSize="12"/>
+                            <Entry Placeholder="User Token" Text="{Binding ListenBrainzTokenInput}" TextColor="White" PlaceholderColor="#888" BackgroundColor="#2D2D2D"/>
+                            <Button Text="Validate Token" Command="{Binding ConnectListenBrainzCommand}" BackgroundColor="#EB743B" TextColor="White" CornerRadius="4"/>
+                        </VerticalStackLayout>
+                        
+                        <!-- Logout Action -->
+                         <Button Text="Disconnect" 
+                                Command="{Binding DisconnectListenBrainzCommand}" 
+                                BackgroundColor="#333" 
+                                TextColor="White" 
+                                CornerRadius="4"
+                                IsVisible="{Binding IsListenBrainzAuthenticated}"/>
+                     </VerticalStackLayout>
+                </Frame>
+                
+                <!-- Google Sync -->
+                <Frame BackgroundColor="#1E1E1E" BorderColor="#333333" CornerRadius="8" Padding="16">
+                     <VerticalStackLayout Spacing="12">
+                        <Grid ColumnDefinitions="*,Auto">
+                             <HorizontalStackLayout Spacing="8" VerticalOptions="Center">
+                                 <Label Text="Google Cloud Sync" TextColor="White" FontAttributes="Bold" VerticalOptions="Center"/>
+                            </HorizontalStackLayout>
+                            <Label Text="{Binding GoogleEmail, StringFormat='Synced as {0}'}" 
+                                   TextColor="#2ECC71" 
+                                   IsVisible="{Binding GoogleSyncEnabled}"
+                                   VerticalOptions="Center" Grid.Column="1"/>
+                        </Grid>
+                        
+                        <Label Text="Sync your playlists and settings to Google Drive." TextColor="#888" FontSize="12"/>
+                        
+                        <Button Text="Sign In with Google" 
+                                Command="{Binding SignInGoogleCommand}" 
+                                BackgroundColor="#4285F4" 
+                                TextColor="White" 
+                                CornerRadius="4"
+                                IsVisible="{Binding GoogleSyncEnabled, Converter={StaticResource InvertedBoolConverter}}"/>
+                                
+                         <Button Text="Sign Out" 
+                                Command="{Binding SignOutGoogleCommand}" 
+                                BackgroundColor="#333" 
+                                TextColor="White" 
+                                CornerRadius="4"
+                                IsVisible="{Binding GoogleSyncEnabled}"/>
+                     </VerticalStackLayout>
+                </Frame>
+            </VerticalStackLayout>
+            
+            <!-- System Group -->
+            <VerticalStackLayout Spacing="8">
+                <Label Text="System" TextColor="White" FontSize="18" FontAttributes="Bold"/>
+                
+                <Grid ColumnDefinitions="*,Auto" HeightRequest="50">
+                    <Label Text="Run on Startup (Windows)" TextColor="White" VerticalOptions="Center"/>
+                    <Switch Grid.Column="1" IsToggled="{Binding IsStartupEnabled, Mode=TwoWay}" OnColor="{DynamicResource AccentPrimary}" ThumbColor="White"/>
+                </Grid>
+                
+                <Grid ColumnDefinitions="*,Auto" HeightRequest="50">
+                    <Label Text="Fullscreen Mode (Android)" TextColor="White" VerticalOptions="Center"/>
+                    <Switch Grid.Column="1" IsToggled="{Binding IsFullscreenEnabled, Mode=TwoWay}" OnColor="{DynamicResource AccentPrimary}" ThumbColor="White"/>
+                </Grid>
+
+                 <Grid ColumnDefinitions="*,Auto" HeightRequest="50">
+                    <Label Text="Show Discord Status" TextColor="White" VerticalOptions="Center"/>
+                    <Switch Grid.Column="1" IsToggled="{Binding EnableDiscordRpc, Mode=TwoWay}" OnColor="{DynamicResource AccentPrimary}" ThumbColor="White"/>
+                </Grid>
+
+                <Grid ColumnDefinitions="*,Auto" HeightRequest="50">
+                    <Label Text="Smart AdBlock (Skip Shorts/Ads)" TextColor="White" VerticalOptions="Center"/>
+                    <Switch Grid.Column="1" IsToggled="{Binding AdBlockEnabled, Mode=TwoWay}" OnColor="{DynamicResource AccentPrimary}" ThumbColor="White"/>
+                </Grid>
             </VerticalStackLayout>
             
             <!-- Audio Group -->

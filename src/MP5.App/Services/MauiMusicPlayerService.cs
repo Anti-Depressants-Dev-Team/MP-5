@@ -11,13 +11,19 @@ public class MauiMusicPlayerService : MusicPlayerServiceBase
 {
     private readonly IAudioService _audioService;
     private readonly IMusicSourceService _musicSourceService;
-    private readonly IScrobblerService _scrobblerService;
+    private readonly IEnumerable<IScrobblerService> _scrobblers;
+    private readonly IDiscordRpcService _discordRpcService;
     
-    public MauiMusicPlayerService(IAudioService audioService, IMusicSourceService musicSourceService, IScrobblerService scrobblerService)
+    public MauiMusicPlayerService(IAudioService audioService, IMusicSourceService musicSourceService, IEnumerable<IScrobblerService> scrobblers, IDiscordRpcService discordRpcService)
     {
         _audioService = audioService;
         _musicSourceService = musicSourceService;
-        _scrobblerService = scrobblerService;
+        
+        // Base class property for Autoplay logic
+        MusicSourceService = musicSourceService;
+        
+        _scrobblers = scrobblers;
+        _discordRpcService = discordRpcService;
         _audioService.PlaybackEnded += OnPlaybackEnded;
         _audioService.PlaybackFailed += OnPlaybackFailed;
     }
@@ -55,28 +61,40 @@ public class MauiMusicPlayerService : MusicPlayerServiceBase
         // Scrobbling: Now Playing
         if (CurrentTrack != null)
         {
-            _ = _scrobblerService.UpdateNowPlayingAsync(CurrentTrack);
+            foreach (var scrobbler in _scrobblers)
+            {
+                _ = scrobbler.UpdateNowPlayingAsync(CurrentTrack);
+            }
+            // Discord RPC
+            _ = _discordRpcService.UpdatePresenceAsync(CurrentTrack, true, TimeSpan.Zero);
         }
     }
     
     protected override async Task PauseInternalAsync()
     {
         await _audioService.PauseAsync();
+        if (CurrentTrack != null)
+            await _discordRpcService.UpdatePresenceAsync(CurrentTrack, false, Position);
     }
     
     protected override async Task ResumeInternalAsync()
     {
         await _audioService.PlayAsync();
+        if (CurrentTrack != null)
+            await _discordRpcService.UpdatePresenceAsync(CurrentTrack, true, Position);
     }
     
     protected override async Task StopInternalAsync()
     {
         await _audioService.StopAsync();
+        await _discordRpcService.ClearPresenceAsync();
     }
     
     protected override async Task SeekInternalAsync(TimeSpan position)
     {
         await _audioService.SeekToAsync(position);
+        if (CurrentTrack != null && State == PlaybackState.Playing)
+            await _discordRpcService.UpdatePresenceAsync(CurrentTrack, true, position);
     }
     
     protected override async Task SetVolumeInternalAsync(double volume)
@@ -107,7 +125,11 @@ public class MauiMusicPlayerService : MusicPlayerServiceBase
         // Scrobble the track that just finished (if it was valid)
         if (CurrentTrack != null)
         {
-            await _scrobblerService.ScrobbleAsync(CurrentTrack, DateTime.Now);
+            var timestamp = DateTime.Now;
+            foreach (var scrobbler in _scrobblers)
+            {
+                _ = scrobbler.ScrobbleAsync(CurrentTrack, timestamp);
+            }
         }
 
         // When track ends, try to play next

@@ -45,6 +45,14 @@ public partial class PlayerViewModel : ObservableObject
     public bool IsRepeatAll => RepeatMode == RepeatMode.All;
     
     [ObservableProperty]
+    private bool _autoplayEnabled = true;
+    
+    partial void OnAutoplayEnabledChanged(bool value)
+    {
+        _playerService.AutoplayEnabled = value;
+    }
+    
+    [ObservableProperty]
     private bool _showVolumePopup;
     
     public bool IsPlaying => PlaybackState == PlaybackState.Playing;
@@ -107,18 +115,87 @@ public partial class PlayerViewModel : ObservableObject
     
     public double DurationSeconds => Duration.TotalSeconds;
     
-    public PlayerViewModel(IMusicPlayerService playerService)
+    private readonly IOfflineService _offlineService;
+    private readonly IMusicSourceService _musicSourceService;
+    private readonly ISettingsService _settingsService;
+    private readonly IPlatformService _platformService;
+    private readonly ILyricsService _lyricsService;
+    
+    public PlayerViewModel(
+        IMusicPlayerService playerService, 
+        IOfflineService offlineService, 
+        IMusicSourceService musicSourceService,
+        ISettingsService settingsService,
+        IPlatformService platformService,
+        ILyricsService lyricsService)
     {
         _playerService = playerService;
+        _offlineService = offlineService;
+        _musicSourceService = musicSourceService;
+        _settingsService = settingsService;
+        _platformService = platformService;
+        _lyricsService = lyricsService;
         
         _playerService.PlaybackStateChanged += OnPlaybackStateChanged;
         _playerService.PositionChanged += OnPositionChanged;
+        
+        // Load settings asynchronously
+        Task.Run(LoadSettingsAsync);
+    }
+
+    private async Task LoadSettingsAsync()
+    {
+        try 
+        {
+            var settings = await _settingsService.GetSettingsAsync();
+            
+            // Apply on UI thread
+            _platformService.InvokeOnMainThread(() =>
+            {
+                Volume = settings.Volume;
+                ShuffleEnabled = settings.ShuffleEnabled;
+                RepeatMode = settings.RepeatMode;
+                VolumeBoostMultiplier = settings.VolumeBoostMultiplier;
+                IsVolumeBoosted = VolumeBoostMultiplier > 1.0;
+            });
+            
+            // Apply to Player Service
+            await _playerService.SetVolumeAsync(settings.Volume);
+            await _playerService.SetVolumeBoostAsync(settings.VolumeBoostMultiplier);
+        }
+        catch (Exception ex)
+        {
+             System.Diagnostics.Debug.WriteLine($"Failed to load player settings: {ex.Message}");
+        }
+    }
+
+    private async Task SaveSettingsAsync()
+    {
+        var settings = await _settingsService.GetSettingsAsync();
+        settings.Volume = Volume;
+        settings.ShuffleEnabled = ShuffleEnabled;
+        settings.RepeatMode = RepeatMode;
+        settings.VolumeBoostMultiplier = VolumeBoostMultiplier;
+        await _settingsService.SaveSettingsAsync(settings);
     }
     
     private void OnPlaybackStateChanged(object? sender, PlaybackStateChangedEventArgs e)
     {
+        var trackChanged = CurrentTrack?.Id != e.CurrentTrack?.Id;
         PlaybackState = e.State;
         CurrentTrack = e.CurrentTrack;
+        CheckOfflineStatus();
+        
+        if (trackChanged && CurrentTrack != null)
+        {
+            _ = LoadLyricsAsync(CurrentTrack);
+        }
+        else if (CurrentTrack == null)
+        {
+            Lyrics = null;
+            ActiveLyricsLine = null;
+        }
+
         OnPropertyChanged(nameof(IsPlaying));
     }
     
@@ -131,6 +208,8 @@ public partial class PlayerViewModel : ObservableObject
             Duration = e.Duration;
             OnPropertyChanged(nameof(PositionSeconds));
             OnPropertyChanged(nameof(DurationSeconds));
+            
+            UpdateSyncedLyrics(e.Position);
         }
     }
     
@@ -142,19 +221,32 @@ public partial class PlayerViewModel : ObservableObject
         _volumeDebounceCts = new CancellationTokenSource();
         var token = _volumeDebounceCts.Token;
 
-        Task.Delay(50, token).ContinueWith(async t =>
+        Task.Delay(100, token).ContinueWith(async t =>
         {
             if (t.IsCanceled) return;
             try
             {
                 await _playerService.SetVolumeAsync(value);
+                // Save volume settings
+                await SaveSettingsAsync();
             }
             catch (Exception ex)
             {
-                // Swiftly swallow errors during rapid sliding to prevent crash
                 System.Diagnostics.Debug.WriteLine($"Volume Set Failed: {ex.Message}");
             }
         });
+    }
+
+    partial void OnShuffleEnabledChanged(bool value) => _ = SaveSettingsAsync();
+    partial void OnRepeatModeChanged(RepeatMode value) => _ = SaveSettingsAsync();
+    partial void OnVolumeBoostMultiplierChanged(double value) => _ = SaveSettingsAsync();
+
+    [RelayCommand]
+    private async Task AddToQueueAsync(Track track)
+    {
+        if (track == null) return;
+        await _playerService.AddToQueueAsync(track);
+        // Visual feedback? maybe toast
     }
 
     [RelayCommand]
@@ -206,5 +298,127 @@ public partial class PlayerViewModel : ObservableObject
             RepeatMode.One => RepeatMode.None,
             _ => RepeatMode.None
         };
+    }
+    
+    // --- Offline Logic ---
+    
+    [ObservableProperty]
+    private bool _isOfflineAvailable;
+    
+    [ObservableProperty]
+    private bool _isDownloading;
+    
+    [ObservableProperty]
+    private double _downloadProgress;
+
+    [RelayCommand]
+    private async Task ToggleDownloadAsync()
+    {
+        if (CurrentTrack == null || IsDownloading) return;
+
+        if (IsOfflineAvailable)
+        {
+            // Remove
+            await _offlineService.RemoveTrackAsync(CurrentTrack);
+            IsOfflineAvailable = false;
+        }
+        else
+        {
+            // Download
+            IsDownloading = true;
+            DownloadProgress = 0;
+            try
+            {
+                var url = await _musicSourceService.GetStreamUrlAsync(CurrentTrack);
+                if (!string.IsNullOrEmpty(url))
+                {
+                    var progress = new Progress<double>(p => DownloadProgress = p);
+                    await _offlineService.DownloadTrackAsync(CurrentTrack, url, progress);
+                    IsOfflineAvailable = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Download Failed: {ex.Message}");
+            }
+            finally
+            {
+                IsDownloading = false;
+            }
+        }
+    }
+    
+    private void CheckOfflineStatus()
+    {
+        if (CurrentTrack != null)
+        {
+            IsOfflineAvailable = _offlineService.IsTrackDownloaded(CurrentTrack);
+        }
+        else
+        {
+            IsOfflineAvailable = false;
+        }
+    }
+
+    // --- Lyrics Logic ---
+    
+    [ObservableProperty]
+    private bool _showLyrics;
+    
+    [ObservableProperty]
+    private Lyrics? _lyrics;
+    
+    [ObservableProperty]
+    private LyricsLine? _activeLyricsLine;
+
+    [ObservableProperty]
+    private string _lyricStatus = "Loading...";
+
+    [RelayCommand]
+    private void ToggleLyrics() => ShowLyrics = !ShowLyrics;
+
+    private async Task LoadLyricsAsync(Track track)
+    {
+        Lyrics = null;
+        ActiveLyricsLine = null;
+        LyricStatus = "Searching lyrics...";
+        
+        try
+        {
+            var lyrics = await _lyricsService.GetLyricsAsync(track);
+            
+            // Avoid race condition if track changed while fetching
+            if (CurrentTrack?.Id == track.Id)
+            {
+                _platformService.InvokeOnMainThread(() =>
+                {
+                    Lyrics = lyrics;
+                    if (Lyrics == null)
+                        LyricStatus = "No lyrics found";
+                    else
+                        LyricStatus = string.Empty;
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+             System.Diagnostics.Debug.WriteLine($"Lyrics Fetch Error: {ex.Message}");
+             LyricStatus = "Error loading lyrics";
+        }
+    }
+
+    private void UpdateSyncedLyrics(TimeSpan position)
+    {
+        if (Lyrics == null || !Lyrics.IsSynced) return;
+        
+        // Find the current line:
+        // The last line whose Time <= position
+        // Optimization: Could cache index, but list is small.
+        var line = Lyrics.SyncedLines.FindLast(l => l.Time <= position + TimeSpan.FromSeconds(0.2)); // Slight offset
+        
+        if (line != ActiveLyricsLine)
+        {
+            ActiveLyricsLine = line;
+        }
     }
 }

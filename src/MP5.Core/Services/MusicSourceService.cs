@@ -6,10 +6,14 @@ namespace MP5.Core.Services;
 public class MusicSourceService : IMusicSourceService
 {
     private readonly IEnumerable<IMusicSource> _sources;
+    private readonly IOfflineService _offlineService;
+    private readonly IAdBlockService _adBlockService;
 
-    public MusicSourceService(IEnumerable<IMusicSource> sources)
+    public MusicSourceService(IEnumerable<IMusicSource> sources, IOfflineService offlineService, IAdBlockService adBlockService)
     {
         _sources = sources;
+        _offlineService = offlineService;
+        _adBlockService = adBlockService;
     }
 
     public async Task<IEnumerable<Track>> SearchAsync(string query)
@@ -22,13 +26,22 @@ public class MusicSourceService : IMusicSourceService
             return Enumerable.Empty<Track>();
         }
 
-        return await primarySource.SearchAsync(query);
+        var results = await primarySource.SearchAsync(query);
+        return _adBlockService.RemoveAds(results);
     }
 
     public async Task<string> GetStreamUrlAsync(Track track)
     {
         if (string.IsNullOrEmpty(track.SourceId))
             return string.Empty;
+
+        // 0. Check offline availability
+        var offlinePath = _offlineService.GetOfflinePath(track);
+        if (!string.IsNullOrEmpty(offlinePath))
+        {
+            System.Diagnostics.Debug.WriteLine($"Playing from offline cache: {track.Title}");
+            return offlinePath;
+        }
 
         // 1. Try to find the specific source if specified in the track
         // (For now, we just use the first matching source capability or default to YouTube)
@@ -66,7 +79,8 @@ public class MusicSourceService : IMusicSourceService
             {
                 // Search this fallback source
                 var searchResults = await source.SearchAsync(searchQuery);
-                var fallbackMatch = searchResults.FirstOrDefault();
+                var filteredResults = _adBlockService.RemoveAds(searchResults);
+                var fallbackMatch = filteredResults.FirstOrDefault();
                 
                 if (fallbackMatch != null)
                 {
@@ -86,5 +100,21 @@ public class MusicSourceService : IMusicSourceService
         }
         
         return string.Empty;
+    }
+
+
+    public async Task<IEnumerable<Track>> GetRecommendationsAsync(Track seedTrack)
+    {
+        // Smart recommendation strategy:
+        // 1. "Mix" based on artist
+        // 2. "Radio" based on track title
+        
+        string query = $"Msg mix {seedTrack.Artist}";
+        if (string.IsNullOrWhiteSpace(seedTrack.Artist) || seedTrack.Artist == "Unknown Artist")
+        {
+            query = $"{seedTrack.Title} similar songs";
+        }
+        
+        return await SearchAsync(query);
     }
 }
